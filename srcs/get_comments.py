@@ -9,7 +9,7 @@ path_to_db = Path(PATH_TO_DB)
 
 
 for video_id in list_of_video_ids:
-    crawler = CommentCrawler(API_KEY)
+    crawler = CommentCrawler(GOOGLE_API_KEY)
     print(f"[INFO] Fetching comments for video: {video_id} ...")
     comments = crawler.fetch_comments(video_id)
 
