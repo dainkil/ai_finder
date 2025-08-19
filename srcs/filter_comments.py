@@ -1,5 +1,5 @@
 import pandas as pd
-from srcs.config import API_KEY, PATH_TO_DB
+from srcs.config import GOOGLE_API_KEY, PATH_TO_DB
 from libs.youtube_data import CommentCrawler, CommentFilter
 from pathlib import Path
 
