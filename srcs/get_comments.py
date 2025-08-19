@@ -1,11 +1,11 @@
 import pandas as pd
-from srcs.config import API_KEY
+from srcs.config import API_KEY, PATH_TO_DB
 from libs.youtube_data import CommentCrawler, CommentFilter
 from pathlib import Path
 
 
 list_of_video_ids = []
-path_to_db = Path("..") / "dbs"
+path_to_db = Path(PATH_TO_DB)
 
 
 for video_id in list_of_video_ids:

@@ -1,2 +1,4 @@
 config.py
 dev.py
+**.pyc
+**/__pycache__/**
