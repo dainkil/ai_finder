@@ -7,6 +7,7 @@ from transformers import AutoTokenizer
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from pathlib import Path
+from imblearn.over_sampling import RandomOverSampler
 
 path_to_real_comments = Path("dbs/real_comments_list.csv")
 path_to_llm_comments = Path("dbs/gpt_4o_mini.csv")
@@ -84,7 +85,7 @@ class TransformerDataset(Dataset):
         }
 
 
-def get_dataloader(model_name, max_len, batch_size):
+def get_dataloader(model_name, max_len, batch_size, oversample=False):
     dataset = get_dataset()
     total_db = dataset["total_db"]
     df = pd.DataFrame(total_db, columns=["text", "label"])
@@ -98,9 +99,20 @@ def get_dataloader(model_name, max_len, batch_size):
         temp_df, test_size=0.5, random_state=42, stratify=temp_df["label"]
     )
 
-    print(f"Train samples: {len(train_df)}")
-    print(f"Validation samples: {len(val_df)}")
-    print(f"Test samples: {len(test_df)}")
+    label_map = {"human": 0, "llm": 1}
+    inv_label_map = {v: k for k, v in label_map.items()}
+
+    print(train_df["label"].value_counts().rename(index=inv_label_map))
+
+    X_train = train_df["text"].values.reshape(-1, 1)
+    y_train = train_df["label"].values
+
+    if oversample == True:
+        ros = RandomOverSampler(sampling_strategy="auto", random_state=42)
+
+        X_resampled, y_resampled = ros.fit_resample(X_train, y_train)
+
+        train_df = pd.DataFrame({"text": X_resampled.squeeze(), "label": y_resampled})
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 

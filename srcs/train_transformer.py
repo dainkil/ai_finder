@@ -16,7 +16,7 @@ from srcs.get_dataset import get_dataloader
 import os
 
 
-save_directory = Path("models/1")
+save_directory = Path("models/2")
 best_model_path = save_directory / "best_model.pt"
 os.makedirs(save_directory, exist_ok=True)
 
@@ -107,6 +107,34 @@ def eval_model(model, data_loader, device):
     return avg_loss, accuracy
 
 
+def test_model(model, test_loader, device):
+    model.eval()
+    test_loss, test_accuracy = eval_model(model, test_loader, device)
+    print(f"\n--- Test Set Performance ---")
+    print(f"Test loss: {test_loss:.4f}")
+    print(f"Test accuracy: {test_accuracy:.4f}")
+
+    # detailed results analysis
+    print("\n--- Test Set Classification Report ---")
+    model.eval()
+    y_pred = []
+    y_true = []
+    with torch.no_grad():
+        for batch in tqdm(test_loader, desc="Testing"):
+            input_ids = batch["input_ids"].to(device)
+            attention_mask = batch["attention_mask"].to(device)
+            labels = batch["labels"].to(device)
+
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            logits = outputs.logits
+            preds = torch.argmax(logits, dim=1)
+
+            y_pred.extend(preds.cpu().numpy())
+            y_true.extend(labels.cpu().numpy())
+
+    print(classification_report(y_true, y_pred, target_names=["human", "llm"]))
+
+
 min_val_loss = np.inf
 patience_counter = 0
 for epoch in range(MAX_EPOCHS):
@@ -142,34 +170,9 @@ final_model = AutoModelForSequenceClassification.from_pretrained(
 
 final_model.load_state_dict(torch.load(best_model_path))
 final_model.to(device)
-final_model.eval()
 
-# Test DataSet results
-test_loss, test_accuracy = eval_model(final_model, test_loader, device)
-print(f"\n--- Test Set Performance ---")
-print(f"Test loss: {test_loss:.4f}")
-print(f"Test accuracy: {test_accuracy:.4f}")
-
-
-# detailed results analysis
-print("\n--- Test Set Classification Report ---")
-final_model.eval()
-y_pred = []
-y_true = []
-with torch.no_grad():
-    for batch in tqdm(test_loader, desc="Testing"):
-        input_ids = batch["input_ids"].to(device)
-        attention_mask = batch["attention_mask"].to(device)
-        labels = batch["labels"].to(device)
-
-        outputs = final_model(input_ids=input_ids, attention_mask=attention_mask)
-        logits = outputs.logits
-        preds = torch.argmax(logits, dim=1)
-
-        y_pred.extend(preds.cpu().numpy())
-        y_true.extend(labels.cpu().numpy())
+test_model(final_model, test_loader, device)
 
 final_model.save_pretrained(save_directory)
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 tokenizer.save_pretrained(save_directory)
-# print(classification_report(y_true, y_pred, target_names=["human", "llm"]))
