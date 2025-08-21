@@ -86,7 +86,7 @@ class TransformerDataset(Dataset):
 
 def get_dataloader(model_name, max_len, batch_size):
     dataset = get_dataset()
-    total_db = dataset["total_db"][:2000]
+    total_db = dataset["total_db"]
     df = pd.DataFrame(total_db, columns=["text", "label"])
     label_map = {"human": 0, "llm": 1}
     df["label"] = df["label"].map(label_map)

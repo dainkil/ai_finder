@@ -4,3 +4,4 @@ dev.py
 **/__pycache__/**
 **.csv
 **.pkl
+models/
