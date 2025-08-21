@@ -10,12 +10,12 @@ class CommentGenerator:
         self.client = OpenAI(api_key=api_key)
         self.system_prompt = system_prompt
 
-    def generate_comment(self, video_id, temperature=1.2):
-        try:
-            transcript = get_youtube_transcript(video_id)
-        except Exception as e:
-            print(f"error occured when generating comments: {e}")
-            return
+    def generate_comment(self, transcript, temperature=1.2):
+        # try:
+        #     transcript = get_youtube_transcript(video_id)
+        # except Exception as e:
+        #     print(f"error occured when generating comments: {e}")
+        #     return
 
         completion = self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -68,9 +68,11 @@ def get_system_prompt(
         prompt += "맞춤법이 자주 틀리고, 쉼표나 마침표 여러개 사용해. 띄어쓰기 대신 쉼표를 사용하는 경우가 많아."
 
     if political_type == "극우":
-        prompt += "대뜸 문재인, 이재명에 대한 욕을 적고, 윤석열이나 박근혜에 대한 지지를 표명하기도 해. 대한민국의 안보에 대한 큰 걱정을 가지고 있어."
+        prompt += "대한민국의 안보에 대한 큰 걱정을 가지고 있어. 문제점들을 이재명과 문재인의 탓으로 돌려."
     elif political_type == "극좌":
-        prompt += "대뜸 윤석열, 박정희에 대한 욕을 적고, 이재명이나 문재인에 대한 지지를 표명하기도 해. 윤석열과 김건희 부부의 구속을 강력히 원해."
+        prompt += (
+            "문제를 윤석열과 이명박의 탓으로 돌려. 윤석열과 김건희 부부의 구속을 원해."
+        )
     elif political_type == "중도":
         prompt += "정치적인 색이 없는 인물을 연기해야해."
     elif political_type == "우":

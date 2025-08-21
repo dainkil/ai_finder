@@ -18,3 +18,4 @@ for video_id in list_of_video_ids:
     comment_filter.save_flagged_comments(
         path_to_db / "flagged_spam_comments_{video_id}.csv"
     )
+ 

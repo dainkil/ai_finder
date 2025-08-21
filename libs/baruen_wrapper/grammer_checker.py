@@ -1,13 +1,12 @@
-
 import requests
 from bareunpy import Tagger
-from srcs.config import BAREUN_API_KEY 
+from srcs.config import BAREUN_API_KEY
 
 API_URL = "https://bareun.busan.ac.kr/bareun.RevisionService/CorrectError"
 
 HEADERS = {
     "Authorization": f"Bearer {BAREUN_API_KEY}",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
 }
 
 
@@ -33,4 +32,4 @@ def check_text(text: str):
         return [], False
 
     error_types = {err.get("type", "unknown") for err in errors}
-    return list(error_types), True 
+    return list(error_types), True

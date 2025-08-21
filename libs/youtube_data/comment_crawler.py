@@ -64,7 +64,7 @@ class CommentCrawler:
             print(f"[ERROR] Failed to fetch comments: {e}")
             return []
 
-        return comments_list
+        return comments_list  # list of dicts key = {"author", "published_at", "like_count", "text", "is_reply"}
 
     def to_csv(self, comments: list[dict], filename: Path):
         """댓글 데이터를 CSV 파일로 저장"""

@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from srcs.config import PATH_TO_DB
-from libs.youtube_data.grammer_checker import check_text
+from libs.baruen_wrapper.grammer_checker import check_text
 
 VIDEO_CODE = "8QKwb3xREmQ"
 

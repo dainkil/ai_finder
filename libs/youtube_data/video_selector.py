@@ -57,7 +57,7 @@ class VideoSelector:
 
     def _get_videos_single_page(self, params: Dict):
         search_response = self.youtube.search().list(**params).execute()
-        print("Search_response : ", search_response)
+        # print("Search_response : ", search_response)
         videos = []
         for search_result in search_response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
