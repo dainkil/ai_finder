@@ -1,6 +1,12 @@
 import pandas as pd
 from pathlib import Path
 import pickle
+import torch
+from torch.utils.data import Dataset, DataLoader
+from transformers import AutoTokenizer
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from pathlib import Path
 
 path_to_real_comments = Path("dbs/real_comments_list.csv")
 path_to_llm_comments = Path("dbs/gpt_4o_mini.csv")
@@ -43,3 +49,67 @@ def get_dataset():
         print(f"'{path_to_dataset_pickle}' dumped")
 
     return dataset
+
+
+class TransformerDataset(Dataset):
+    def __init__(self, dataframe, tokenizer, max_len):
+        self.tokenizer = tokenizer
+        self.data = dataframe
+        self.text = dataframe.text.values
+        self.labels = dataframe.label.values
+        self.max_len = max_len
+
+    def __len__(self):
+        return len(self.text)
+
+    def __getitem__(self, index):
+        text = str(self.text[index])
+        label = self.labels[index]
+
+        encoding = self.tokenizer.encode_plus(
+            text,
+            add_special_tokens=True,
+            max_length=self.max_len,
+            return_token_type_ids=False,
+            padding="max_length",
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+        )
+
+        return {
+            "input_ids": encoding["input_ids"].flatten(),
+            "attention_mask": encoding["attention_mask"].flatten(),
+            "labels": torch.tensor(label, dtype=torch.long),
+        }
+
+
+def get_dataloader(model_name, max_len, batch_size):
+    dataset = get_dataset()
+    total_db = dataset["total_db"][:2000]
+    df = pd.DataFrame(total_db, columns=["text", "label"])
+    label_map = {"human": 0, "llm": 1}
+    df["label"] = df["label"].map(label_map)
+
+    train_df, temp_df = train_test_split(
+        df, test_size=0.2, random_state=42, stratify=df["label"]
+    )
+    val_df, test_df = train_test_split(
+        temp_df, test_size=0.5, random_state=42, stratify=temp_df["label"]
+    )
+
+    print(f"Train samples: {len(train_df)}")
+    print(f"Validation samples: {len(val_df)}")
+    print(f"Test samples: {len(test_df)}")
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+    train_dataset = TransformerDataset(train_df, tokenizer, max_len)
+    val_dataset = TransformerDataset(val_df, tokenizer, max_len)
+    test_dataset = TransformerDataset(test_df, tokenizer, max_len)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+    return train_loader, val_loader, test_loader
